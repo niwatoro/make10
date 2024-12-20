@@ -127,6 +127,7 @@ def solve(nums, solve_dict, order_dict):
 translate_dict = {
     r"(^|\+|\()\(([{}+-]+){}\)($|\+|-|\))": r"\1\2{}\3",
     r"\({}\*{}\)": r"{}*{}",
+    r"(\+|-|^)\({}/{}\)(\+|-|$)": r"\1{}/{}\2",
     r"-\(([^()]*?)\)": lambda match: f'-{match.group(1).replace("+", "TEMP").replace("-", "+").replace("TEMP", "-")}',
 }
 
@@ -156,10 +157,10 @@ def main():
     format_string, orders = solve(nums, solve_dict, order_dict)
     format_string = clean_format_string(format_string[1:-1])
     equation = format_string.format(*[nums[order] for order in orders])
-    
+
     if len(equation) > 0:
-        print(equation)
-        assert eval(equation) == 10, "Equation corrupted"
+        assert eval(equation) == 10, f"Equation corrupted: {equation}"
+        print(f"{equation} = 10")
     else:
         print("No answer")
 

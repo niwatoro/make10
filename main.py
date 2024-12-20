@@ -156,9 +156,12 @@ def main():
     format_string, orders = solve(nums, solve_dict, order_dict)
     format_string = clean_format_string(format_string[1:-1])
     equation = format_string.format(*[nums[order] for order in orders])
-    print(equation)
+    
     if len(equation) > 0:
-        assert eval(equation) == 10
+        print(equation)
+        assert eval(equation) == 10, "Equation corrupted"
+    else:
+        print("No answer")
 
 
 if __name__ == "__main__":

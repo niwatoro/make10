@@ -39,7 +39,7 @@ def is_solvable(nums, solvable_dict):
         return False
 
 
-def solve(nums, solve_dict, order_dict):
+def solve(nums, solve_dict, order_dict, allow_power=False):
     nums.sort()
 
     if tuple(nums) in solve_dict:
@@ -52,7 +52,7 @@ def solve(nums, solve_dict, order_dict):
     else:
         for i in range(len(nums) - 1):
             for j in range(i + 1, len(nums)):
-                for k in range(4):
+                for k in range(6):
                     match k:
                         case 0:
                             new_val = nums[j] + nums[i]
@@ -69,6 +69,18 @@ def solve(nums, solve_dict, order_dict):
 
                             new_val = int(nums[j] / nums[i])
                             new_format = "{}/{}"
+                        case 4:
+                            if not allow_power:
+                                continue
+
+                            new_val = nums[j] ** nums[i]
+                            new_format = "{}**{}"
+                        case 5:
+                            if not allow_power:
+                                continue
+
+                            new_val = nums[i] ** nums[j]
+                            new_format = "{}**{}"
 
                     new_nums = [*nums[:i], *nums[i + 1 : j], *nums[j + 1 :], new_val]
                     format_string, orders = solve(new_nums, solve_dict, order_dict)
@@ -90,8 +102,8 @@ def solve(nums, solve_dict, order_dict):
 
                         vals = [
                             *[new_nums[order] for order in orders[:updated_orders_id]],
-                            nums[j],
-                            nums[i],
+                            nums[j] if k < 5 else nums[i],
+                            nums[i] if k < 5 else nums[j],
                             *[
                                 new_nums[order]
                                 for order in orders[updated_orders_id + 1 :]
@@ -126,7 +138,7 @@ def solve(nums, solve_dict, order_dict):
 
 translate_dict = {
     r"(^|\+|\()\(([{}+-]+){}\)($|\+|-|\))": r"\1\2{}\3",
-    r"\({}\*{}\)": r"{}*{}",
+    ## r"(?!\*\*)\({}\*{}\)": r"{}*{}",
     r"(\+|-|^)\({}/{}\)(\+|-|$)": r"\1{}/{}\2",
     r"-\(([^()]*?)\)": lambda match: f'-{match.group(1).replace("+", "TEMP").replace("-", "+").replace("TEMP", "-")}',
 }
@@ -147,22 +159,36 @@ def clean_format_string(format_string):
 
 
 def main():
-    num = sys.argv[1]
-    nums = [int(n) for n in str(num)]
-    nums.sort()
-
     solve_dict = {}
     order_dict = {}
 
-    format_string, orders = solve(nums, solve_dict, order_dict)
-    format_string = clean_format_string(format_string[1:-1])
-    equation = format_string.format(*[nums[order] for order in orders])
+    if len(sys.argv) > 1:
+        num = sys.argv[1]
+        nums = [int(n) for n in str(num)]
 
-    if len(equation) > 0:
-        assert eval(equation) == 10, f"Equation corrupted: {equation}"
-        print(f"{equation} = 10")
+        format_string, orders = solve(nums, solve_dict, order_dict)
+        format_string = clean_format_string(format_string[1:-1])
+        equation = format_string.format(*[nums[order] for order in orders])
+
+        if len(equation) > 0:
+            assert eval(equation) == 10, f"Equation corrupted: {equation}"
+            print(equation)
+        else:
+            print("No answer")
     else:
-        print("No answer")
+        for i in range(10000):
+            num = str(i).zfill(4)
+            nums = [int(n) for n in num]
+
+            format_string, orders = solve(nums, solve_dict, order_dict)
+            format_string = clean_format_string(format_string[1:-1])
+            equation = format_string.format(*[nums[order] for order in orders])
+
+            if len(equation) > 0:
+                assert eval(equation) == 10, f"Equation corrupted: {equation}"
+                print(f"{num}: {equation}")
+            else:
+                print(f"{num}: No answer")
 
 
 if __name__ == "__main__":

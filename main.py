@@ -83,15 +83,15 @@ def solve(nums, solve_dict, order_dict, allow_power=False):
                             new_format = "{}**{}"
 
                     new_nums = [*nums[:i], *nums[i + 1 : j], *nums[j + 1 :], new_val]
-                    format_string, orders = solve(
+                    format_string, order = solve(
                         new_nums, solve_dict, order_dict, allow_power=allow_power
                     )
 
                     if len(format_string) > 0:
                         updated_nums_id = new_nums.index(new_val)
-                        updated_orders_id = orders.index(updated_nums_id)
+                        updated_order_id = order.index(updated_nums_id)
                         updated_format_id = format_string.replace(
-                            "{}", "XX", updated_orders_id
+                            "{}", "XX", updated_order_id
                         ).find("{}")
 
                         format_string = (
@@ -103,17 +103,17 @@ def solve(nums, solve_dict, order_dict, allow_power=False):
                         )
 
                         vals = [
-                            *[new_nums[order] for order in orders[:updated_orders_id]],
+                            *[new_nums[o] for o in order[:updated_order_id]],
                             nums[j] if k < 5 else nums[i],
                             nums[i] if k < 5 else nums[j],
                             *[
-                                new_nums[order]
-                                for order in orders[updated_orders_id + 1 :]
+                                new_nums[o]
+                                for o in order[updated_order_id + 1 :]
                             ],
                         ]
 
                         taken_dict = {}
-                        orders = []
+                        new_order = []
 
                         for val in vals:
                             index = nums.index(val)
@@ -126,15 +126,16 @@ def solve(nums, solve_dict, order_dict, allow_power=False):
                                 break
 
                             taken_dict[index] = True
-                            orders.append(index)
+                            new_order.append(index)
 
-                        assert sum(orders) == sum(range(len(nums)))
+                        assert sum(new_order) == sum(range(len(nums)))
+                        order = new_order
 
                     solve_dict[tuple(nums)] = format_string
-                    order_dict[tuple(nums)] = orders
+                    order_dict[tuple(nums)] = order
 
                     if len(format_string) > 0:
-                        return format_string, orders
+                        return format_string, order
         return "", []
 
 
@@ -175,11 +176,11 @@ def main():
     if num is not None:
         nums = [int(n) for n in str(num)]
 
-        format_string, orders = solve(
+        format_string, order = solve(
             nums, solve_dict, order_dict, allow_power=allow_power
         )
         format_string = clean_format_string(format_string[1:-1])
-        equation = format_string.format(*[nums[order] for order in orders])
+        equation = format_string.format(*[nums[o] for o in order])
 
         if len(equation) > 0:
             assert eval(equation) == 10, f"Equation corrupted: {equation}"
@@ -191,11 +192,11 @@ def main():
             num = str(i).zfill(4)
             nums = [int(n) for n in num]
 
-            format_string, orders = solve(
+            format_string, order = solve(
                 nums, solve_dict, order_dict, allow_power=allow_power
             )
             format_string = clean_format_string(format_string[1:-1])
-            equation = format_string.format(*[nums[order] for order in orders])
+            equation = format_string.format(*[nums[o] for o in order])
 
             if len(equation) > 0:
                 assert eval(equation) == 10, f"Equation corrupted: {equation}"

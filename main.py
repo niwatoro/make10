@@ -1,5 +1,5 @@
+import argparse
 import re
-import sys
 
 
 def is_solvable(nums, solvable_dict):
@@ -70,20 +70,22 @@ def solve(nums, solve_dict, order_dict, allow_power=False):
                             new_val = int(nums[j] / nums[i])
                             new_format = "{}/{}"
                         case 4:
-                            if not allow_power:
+                            if not allow_power or nums[i] >= 10 or nums[j] >= 10:
                                 continue
 
                             new_val = nums[j] ** nums[i]
                             new_format = "{}**{}"
                         case 5:
-                            if not allow_power:
+                            if not allow_power or nums[i] >= 10 or nums[j] >= 10:
                                 continue
 
                             new_val = nums[i] ** nums[j]
                             new_format = "{}**{}"
 
                     new_nums = [*nums[:i], *nums[i + 1 : j], *nums[j + 1 :], new_val]
-                    format_string, orders = solve(new_nums, solve_dict, order_dict)
+                    format_string, orders = solve(
+                        new_nums, solve_dict, order_dict, allow_power=allow_power
+                    )
 
                     if len(format_string) > 0:
                         updated_nums_id = new_nums.index(new_val)
@@ -159,14 +161,23 @@ def clean_format_string(format_string):
 
 
 def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--num", type=int)
+    parser.add_argument("--allow_power", action="store_true")
+
+    args = parser.parse_args()
+    num = args.num
+    allow_power = args.allow_power
+
     solve_dict = {}
     order_dict = {}
 
-    if len(sys.argv) > 1:
-        num = sys.argv[1]
+    if num is not None:
         nums = [int(n) for n in str(num)]
 
-        format_string, orders = solve(nums, solve_dict, order_dict)
+        format_string, orders = solve(
+            nums, solve_dict, order_dict, allow_power=allow_power
+        )
         format_string = clean_format_string(format_string[1:-1])
         equation = format_string.format(*[nums[order] for order in orders])
 
@@ -180,7 +191,9 @@ def main():
             num = str(i).zfill(4)
             nums = [int(n) for n in num]
 
-            format_string, orders = solve(nums, solve_dict, order_dict)
+            format_string, orders = solve(
+                nums, solve_dict, order_dict, allow_power=allow_power
+            )
             format_string = clean_format_string(format_string[1:-1])
             equation = format_string.format(*[nums[order] for order in orders])
 
